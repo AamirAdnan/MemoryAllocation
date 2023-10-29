@@ -26,7 +26,7 @@ MemoryManager* initialize_memory_manager(int memory_size) {
     manager->free_block_count = 1;
     for (int i = 0; i < memory_size; ++i) {
         manager->memory[i].start = i;
-        manager->memory[i].size = 10; // Adjust this based on your simulation
+        manager->memory[i].size = 30; // Adjust this based on your simulation
         manager->memory[i].process_id = NULL;
     }
     return manager;
@@ -70,28 +70,42 @@ void deallocate_memory(MemoryManager* manager, char* process_id) {
 }
 
 void print_memory_status(MemoryManager* manager, int time_unit) {
+    //system("cls"); // Clear the console screen (for Unix-like systems)
+
+    //printf("Welcome to My Memory Manager\n");
     printf("Memory Status after Time Unit %d:\n", time_unit);
-    printf("Allocated Memory: ");
+
+    printf("+-----------------+-------+------------+\n");
+    printf("|   Process ID    | Size  |   Start    |\n");
+    printf("+-----------------+-------+------------+\n");
+
     for (int i = 0; i < manager->memory_size; ++i) {
         if (manager->memory[i].process_id != NULL) {
-            printf("[Start: %d, Size: %d, Process ID: %s] ", manager->memory[i].start, manager->memory[i].size, manager->memory[i].process_id);
+            printf("| %15s | %5d | %10d |\n", manager->memory[i].process_id, manager->memory[i].size, manager->memory[i].start);
         }
     }
 
-    printf("\nFree Memory: ");
+    printf("+-----------------+-------+------------+\n");
+
+    printf("\nFree Memory Blocks:\n");
+
+    printf("+-------+------------+\n");
+    printf("| Size  |   Start    |\n");
+    printf("+-------+------------+\n");
+
     for (int i = 0; i < manager->free_block_count; ++i) {
-        printf("[Start: %d, Size: %d] ", manager->free_blocks[i]->start, manager->free_blocks[i]->size);
+        printf("| %5d | %10d |\n", manager->free_blocks[i]->size, manager->free_blocks[i]->start);
     }
 
+    printf("+-------+------------+\n");
+
     int fragmentation_loss = 0;
-    int wasted_memory_blocks = manager->free_block_count;
 
     for (int i = 0; i < manager->free_block_count; ++i) {
         fragmentation_loss += manager->free_blocks[i]->size;
     }
 
-    printf("\nFragmentation Loss: %d", fragmentation_loss);
-    printf("\nWasted Memory Blocks: %d\n\n", wasted_memory_blocks);
+    printf("\nFragmentation Loss: %d\n", fragmentation_loss);
 }
 
 void free_memory_manager(MemoryManager* manager) {
@@ -107,27 +121,31 @@ int main() {
     char process_id[5];
     int process_size;
 
+    printf("Welcome to My Memory Manager\n");
+
     // Allocate memory for 3 processes
     for (int i = 1; i <= 3; ++i) {
-        sprintf(process_id, "P%d", i);
-        process_size = 5; // process size
+        printf("Enter the process name for process %d: ", i);
+        scanf("%s", process_id);
+        printf("Enter the size for process %d: ", i);
+        scanf("%d", &process_size);
+
         if (allocate_memory(manager, process_id, process_size)) {
             printf("Allocated memory for process %s\n", process_id);
         } else {
             printf("Failed to allocate memory for process %s\n", process_id);
         }
+
+        print_memory_status(manager, i);
     }
 
-    // Display memory status after all allocations
-    print_memory_status(manager, 1);
-
-    // Deallocate memory for process P2
-    strcpy(process_id, "P2");
+    // Deallocate memory for process P1
+    strcpy(process_id, "P1");
     deallocate_memory(manager, process_id);
     printf("Deallocated memory for process %s\n", process_id);
 
     // Display memory status after deallocation
-    print_memory_status(manager, 2);
+    print_memory_status(manager, 4);
 
     free_memory_manager(manager);
 
